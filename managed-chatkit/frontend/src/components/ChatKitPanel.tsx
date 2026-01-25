@@ -9,9 +9,9 @@ import {
   CREATE_SESSION_ENDPOINT,
   WORKFLOW_ID,
   getThemeConfig,
-} from "@/lib/config";
+} from "../lib/config";
 import { ErrorOverlay } from "./ErrorOverlay";
-import type { ColorScheme } from "@/hooks/useColorScheme";
+import type { ColorScheme } from "../hooks/useColorScheme";
 
 export type FactAction = {
   type: "save";

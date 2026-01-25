@@ -322,7 +322,7 @@ export function ChatKitPanel({
             console.log("🔥 TOOL INVOCATION:", invocation.params);
           }
 
-          const response = await fetch("/api/handoff/handoff", {
+          const response = await fetch("/api/handoff", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

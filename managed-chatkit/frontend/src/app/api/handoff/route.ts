@@ -24,17 +24,22 @@ export async function POST(req: Request) {
     }
 
     const slackWebhook = process.env.SLACK_WEBHOOK_URL;
+    const ghlApiKey = process.env.GHL_API_KEY;
+    const ghlLocationId = process.env.GHL_LOCATION_ID;
+    const transcriptField = process.env.GHL_CUSTOM_FIELD_TRANSCRIPT;
 
-    if (!slackWebhook) {
-      console.error("Missing SLACK_WEBHOOK_URL env variable");
+    if (!slackWebhook || !ghlApiKey || !ghlLocationId || !transcriptField) {
+      console.error("Missing environment variables");
       return NextResponse.json(
         { error: "Server misconfiguration" },
         { status: 500 }
       );
     }
 
+    // --------------------------
+    // Slack message
+    // --------------------------
     const ticketId = Math.random().toString(36).substring(2, 10).toUpperCase();
-
     const handoffType =
       body.type === "progressive_profile"
         ? "🟣 Progressive Profile"
@@ -55,18 +60,88 @@ ${body.message || "_No message provided_"}
 ${body.transcript || "_No transcript provided_"}
     `.trim();
 
-    const slackRes = await fetch(slackWebhook, {
+    const slackReq = fetch(slackWebhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text: slackText }),
     });
 
+    // --------------------------
+    // GHL UPSERT LOGIC
+    // --------------------------
+
+    // 1. Search by email
+    const searchUrl = `https://rest.gohighlevel.com/v1/contacts/search?query=${encodeURIComponent(
+      body.email
+    )}`;
+
+    const searchRes = await fetch(searchUrl, {
+      headers: { Authorization: `Bearer ${ghlApiKey}` },
+    });
+
+    let existingContactId: string | null = null;
+
+    if (searchRes.ok) {
+      const data = await searchRes.json();
+      if (data?.contacts?.length > 0) {
+        existingContactId = data.contacts[0].id;
+      }
+    }
+
+    const ghlPayload = {
+      locationId: ghlLocationId,
+      firstName: body.name,
+      lastName: "",
+      email: body.email,
+      phone: body.phone || "",
+      companyName: body.company || "",
+      tags: [
+        body.type === "progressive_profile"
+          ? "tp-progressive-profile"
+          : "tp-human-handoff",
+      ],
+      customField: [
+        {
+          id: transcriptField,
+          value: body.transcript || "",
+        },
+      ],
+    };
+
+    let ghlReq;
+
+    // 2. If exists → PATCH
+    if (existingContactId) {
+      ghlReq = fetch(
+        `https://rest.gohighlevel.com/v1/contacts/${existingContactId}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${ghlApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(ghlPayload),
+        }
+      );
+    } else {
+      // 3. Else → create new
+      ghlReq = fetch("https://rest.gohighlevel.com/v1/contacts/", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${ghlApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(ghlPayload),
+      });
+    }
+
+    const [slackRes, ghlRes] = await Promise.all([slackReq, ghlReq]);
+
     if (!slackRes.ok) {
       console.error("Slack error:", await slackRes.text());
-      return NextResponse.json(
-        { error: "Slack webhook failed" },
-        { status: 500 }
-      );
+    }
+    if (!ghlRes.ok) {
+      console.error("GHL error:", await ghlRes.text());
     }
 
     return NextResponse.json({ ok: true });

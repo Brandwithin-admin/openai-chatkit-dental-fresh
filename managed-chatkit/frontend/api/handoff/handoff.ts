@@ -1,33 +1,36 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { NextResponse } from "next/server";
+
+export const runtime = "edge";
 
 type HandoffPayload = {
   type: "progressive_profile" | "human_handoff";
   name: string;
   email: string;
   phone?: string | null;
+  company?: string | null;
   message?: string | null;
   transcript?: string | null;
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
+export async function POST(req: Request) {
   try {
-    const body = req.body as HandoffPayload;
+    const body = (await req.json()) as HandoffPayload;
 
     if (!body.name || !body.email) {
-      return res.status(400).json({
-        error: "Missing required fields: name and email",
-      });
+      return NextResponse.json(
+        { error: "Missing required fields: name and email" },
+        { status: 400 }
+      );
     }
 
     const slackWebhook = process.env.SLACK_WEBHOOK_URL;
 
     if (!slackWebhook) {
       console.error("Missing SLACK_WEBHOOK_URL env variable");
-      return res.status(500).json({ error: "Server misconfiguration" });
+      return NextResponse.json(
+        { error: "Server misconfiguration" },
+        { status: 500 }
+      );
     }
 
     const ticketId = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -43,11 +46,12 @@ ${handoffType} (#${ticketId})
 *Name:* ${body.name}
 *Email:* ${body.email}
 *Phone:* ${body.phone || "N/A"}
+*Company:* ${body.company || "N/A"}
 
 *Message:*
 ${body.message || "_No message provided_"}
 
-*Transcript:*
+*Transcript (context):*
 ${body.transcript || "_No transcript provided_"}
     `.trim();
 
@@ -58,14 +62,23 @@ ${body.transcript || "_No transcript provided_"}
     });
 
     if (!slackRes.ok) {
-      const errText = await slackRes.text();
-      console.error("Slack error:", errText);
-      return res.status(500).json({ error: "Slack webhook failed" });
+      console.error("Slack error:", await slackRes.text());
+      return NextResponse.json(
+        { error: "Slack webhook failed" },
+        { status: 500 }
+      );
     }
 
-    return res.status(200).json({ ok: true });
+    return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Error in /api/handoff:", err);
-    return res.status(500).json({ error: "Failed to process handoff" });
+    return NextResponse.json(
+      { error: "Failed to process handoff" },
+      { status: 500 }
+    );
   }
+}
+
+export async function GET() {
+  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }

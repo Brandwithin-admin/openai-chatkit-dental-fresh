@@ -167,8 +167,8 @@ export function ChatKitPanel({
       }
 
       if (!isWorkflowConfigured) {
-        const detail =
-          "Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your .env.local file.";
+      const detail =
+  "Set VITE_CHATKIT_WORKFLOW_ID in your .env file.";
         if (isMountedRef.current) {
           setErrorState({ session: detail, retryable: false });
           setIsInitializingSession(false);

@@ -1,4 +1,4 @@
-import { WORKFLOW_ID } from "@/lib/config";
+import { WORKFLOW_ID } from "../lib/config";
 
 export const runtime = "edge";
 

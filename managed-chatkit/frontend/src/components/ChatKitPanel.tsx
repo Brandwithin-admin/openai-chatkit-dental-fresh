@@ -11,7 +11,6 @@ import {
 
 import type { ColorScheme } from "../hooks/useColorScheme";
 import { ErrorOverlay } from "./ErrorOverlay";
-import type { ColorScheme } from "../hooks/useColorScheme";
 
 export type FactAction = {
   type: "save";

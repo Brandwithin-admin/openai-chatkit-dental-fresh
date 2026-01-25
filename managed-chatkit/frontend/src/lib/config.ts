@@ -1,5 +1,7 @@
 import { ColorScheme, StartScreenPrompt, ThemeOption } from "@openai/chatkit";
 
+console.log("ENV WORKFLOW:", import.meta.env.VITE_CHATKIT_WORKFLOW_ID);
+
 export const WORKFLOW_ID =
   (import.meta.env.VITE_CHATKIT_WORKFLOW_ID as string | undefined)?.trim() ?? "";
 

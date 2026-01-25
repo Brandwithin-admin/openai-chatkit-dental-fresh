@@ -31,12 +31,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         "OpenAI-Beta": "chatkit_beta=v1",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        workflow: { id: workflowId },
-        chatkit_configuration: {
-          file_upload: { enabled: true },
-        },
-      }),
+  const userId = crypto.randomUUID();
+
+body: JSON.stringify({
+  workflow: { id: workflowId },
+  user: userId,
+  chatkit_configuration: {
+    file_upload: { enabled: true },
+  },
+}),
     });
 
     const data = await response.json();

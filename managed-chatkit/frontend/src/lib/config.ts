@@ -1,23 +1,27 @@
 import { ColorScheme, StartScreenPrompt, ThemeOption } from "@openai/chatkit";
 
-export const WORKFLOW_ID = import.meta.env.VITE_CHATKIT_WORKFLOW_ID;?.trim() ?? "";
+export const WORKFLOW_ID =
+  (import.meta.env.VITE_CHATKIT_WORKFLOW_ID as string | undefined)?.trim() ?? "";
 
 export const CREATE_SESSION_ENDPOINT = "/api/create-session";
 
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
   {
     label: "Where should I start?",
-    prompt: "“Guide me on where to start inside Thriving Practitioners based on my needs as a natural health practitioner. Provide a simple pathway and link me to the most relevant resources, blogs, and pages from the Thriving Practitioners website.",
+    prompt:
+      "Guide me on where to start inside Thriving Practitioners based on my needs as a natural health practitioner. Provide a simple pathway and link me to the most relevant resources, blogs, and pages from the Thriving Practitioners website.",
     icon: "circle-question",
   },
   {
     label: "How can I get discovered in AI search?",
-    prompt: "Explain the exact steps a natural health practitioner should take to get discovered in AI search. Reference and link to the relevant pages or blog posts on the Thriving Practitioners website that cover AI visibility, Answer Engine Optimisation, and modern search behaviour.",
+    prompt:
+      "Explain the exact steps a natural health practitioner should take to get discovered in AI search. Reference and link to the relevant pages or blog posts on the Thriving Practitioners website that cover AI visibility, Answer Engine Optimisation, and modern search behaviour.",
     icon: "circle-question",
   },
   {
     label: "Show me helpful resources.",
-    prompt: "Show me the most helpful resources, blogs, and trainings available on the Thriving Practitioners website. Curate them based on common practitioner needs: content creation, visibility, AI search, practice growth, ethical marketing, website improvement, and clarity of niche. Include short explanations of why each resource is useful.",
+    prompt:
+      "Show me the most helpful resources, blogs, and trainings available on the Thriving Practitioners website. Curate them based on common practitioner needs: content creation, visibility, AI search, practice growth, ethical marketing, website improvement, and clarity of niche. Include short explanations of why each resource is useful.",
     icon: "circle-question",
   },
 ];

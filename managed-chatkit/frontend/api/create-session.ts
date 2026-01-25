@@ -23,6 +23,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Missing workflow id" });
   }
 
+  // ✅ define userId BEFORE fetch
+  const userId = crypto.randomUUID();
+
   try {
     const response = await fetch(`${DEFAULT_CHATKIT_BASE}/v1/chatkit/sessions`, {
       method: "POST",
@@ -31,15 +34,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         "OpenAI-Beta": "chatkit_beta=v1",
         "Content-Type": "application/json",
       },
-  const userId = crypto.randomUUID();
-
-body: JSON.stringify({
-  workflow: { id: workflowId },
-  user: userId,
-  chatkit_configuration: {
-    file_upload: { enabled: true },
-  },
-}),
+      body: JSON.stringify({
+        workflow: { id: workflowId },
+        user: userId,
+        chatkit_configuration: {
+          file_upload: { enabled: true },
+        },
+      }),
     });
 
     const data = await response.json();

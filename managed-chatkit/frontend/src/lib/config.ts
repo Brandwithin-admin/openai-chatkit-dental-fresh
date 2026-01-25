@@ -5,7 +5,7 @@ console.log("ENV WORKFLOW:", import.meta.env.VITE_CHATKIT_WORKFLOW_ID);
 export const WORKFLOW_ID =
   (import.meta.env.VITE_CHATKIT_WORKFLOW_ID as string | undefined)?.trim() ?? "";
 
-export const CREATE_SESSION_ENDPOINT = "/api/create-session";
+export const CREATE_SESSION_ENDPOINT = "/api/create-session/create-session";
 
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
   {

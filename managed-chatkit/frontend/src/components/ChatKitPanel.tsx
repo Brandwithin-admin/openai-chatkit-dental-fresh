@@ -33,7 +33,7 @@ type ErrorState = {
 };
 
 const isBrowser = typeof window !== "undefined";
-const isDev = process.env.NODE_ENV !== "production";
+const isDev = import.meta.env.DEV;
 
 const createInitialErrors = (): ErrorState => ({
   script: null,
@@ -137,7 +137,7 @@ export function ChatKitPanel({
   useEffect(() => {
     if (!isWorkflowConfigured && isMountedRef.current) {
       setErrorState({
-        session: "Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your .env.local file.",
+        session: "Set VITE_CHATKIT_WORKFLOW_ID in your .env file.",
         retryable: false,
       });
       setIsInitializingSession(false);

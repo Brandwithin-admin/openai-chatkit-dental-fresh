@@ -34,7 +34,6 @@ async def health() -> Mapping[str, str]:
 
 @app.post("/api/create-session")
 async def create_session(request: Request) -> JSONResponse:
-    """Exchange a workflow id for a ChatKit client secret."""
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return respond({"error": "Missing OPENAI_API_KEY environment variable"}, 500)
@@ -47,6 +46,10 @@ async def create_session(request: Request) -> JSONResponse:
     user_id, cookie_value = resolve_user(request.cookies)
     api_base = chatkit_api_base()
 
+    payload = body.copy()
+    payload["workflow"] = {"id": workflow_id}
+    payload["user"] = user_id
+
     try:
         async with httpx.AsyncClient(base_url=api_base, timeout=10.0) as client:
             upstream = await client.post(
@@ -56,7 +59,7 @@ async def create_session(request: Request) -> JSONResponse:
                     "OpenAI-Beta": "chatkit_beta=v1",
                     "Content-Type": "application/json",
                 },
-                json={"workflow": {"id": workflow_id}, "user": user_id},
+                json=payload,
             )
     except httpx.RequestError as error:
         return respond(
@@ -67,17 +70,12 @@ async def create_session(request: Request) -> JSONResponse:
 
     payload = parse_json(upstream)
     if not upstream.is_success:
-        message = None
-        if isinstance(payload, Mapping):
-            message = payload.get("error")
+        message = payload.get("error") if isinstance(payload, dict) else None
         message = message or upstream.reason_phrase or "Failed to create session"
         return respond({"error": message}, upstream.status_code, cookie_value)
 
-    client_secret = None
-    expires_after = None
-    if isinstance(payload, Mapping):
-        client_secret = payload.get("client_secret")
-        expires_after = payload.get("expires_after")
+    client_secret = payload.get("client_secret") if isinstance(payload, dict) else None
+    expires_after = payload.get("expires_after") if isinstance(payload, dict) else None
 
     if not client_secret:
         return respond(

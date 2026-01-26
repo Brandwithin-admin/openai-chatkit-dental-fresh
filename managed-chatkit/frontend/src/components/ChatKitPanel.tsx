@@ -8,7 +8,7 @@ import {
   WORKFLOW_ID,
   getThemeConfig,
 } from "../lib/config";
-import { ErrorOverlay } from "../ErrorOverlay";
+import { ErrorOverlay } from "./ErrorOverlay";
 import type { ColorScheme } from "../hooks/useColorScheme";
 
 export type FactAction = {

@@ -9,25 +9,29 @@ export const CREATE_SESSION_ENDPOINT = "/api/create-session";
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
   {
     label: "Where should I start?",
-    prompt: "“Guide me on where to start inside Thriving Practitioners based on my needs as a natural health practitioner. Provide a simple pathway and link me to the most relevant resources, blogs, and pages from the Thriving Practitioners website.",
+    prompt:
+      "Guide me on where to start with Dental Fresh based on my dental needs. Provide a simple pathway and link me to the most relevant services, patient information, and team pages from the Dental Fresh website.",
     icon: "circle-question",
   },
   {
-    label: "How can I get discovered in AI search?",
-    prompt: "Explain the exact steps a natural health practitioner should take to get discovered in AI search. Reference and link to the relevant pages or blog posts on the Thriving Practitioners website that cover AI visibility, Answer Engine Optimisation, and modern search behaviour.",
+    label: "What denture options are available?",
+    prompt:
+      "Explain the different denture and tooth replacement options available at Dental Fresh, including partial dentures, custom overdentures, and advanced implant dentures (All-on-4). Reference and link to the relevant pages on the Dental Fresh website.",
     icon: "circle-question",
   },
   {
-    label: "Show me helpful resources.",
-    prompt: "Show me the most helpful resources, blogs, and trainings available on the Thriving Practitioners website. Curate them based on common practitioner needs: content creation, visibility, AI search, practice growth, ethical marketing, website improvement, and clarity of niche. Include short explanations of why each resource is useful.",
+    label: "How do I care for my dentures?",
+    prompt:
+      "Share general care and maintenance information for people who already have dentures. Reference and link to the Denture Care Guide on the Dental Fresh website and explain what patients should expect in ongoing care.",
     icon: "circle-question",
   },
 ];
 
-export const PLACEHOLDER_INPUT = "Ask anything...";
+export const PLACEHOLDER_INPUT = "Ask about dentures, your first visit, or our team...";
 
 export const GREETING =
-  "How can I support you in growing your practice today?";
+  "Welcome to Dental Fresh. How can I help you today?";
+
 
 export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
   color: {

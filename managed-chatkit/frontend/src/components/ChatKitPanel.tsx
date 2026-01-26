@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatKit, useChatKit } from "@openai/chatkit-react";
 import {
@@ -7,10 +9,9 @@ import {
   CREATE_SESSION_ENDPOINT,
   WORKFLOW_ID,
   getThemeConfig,
-} from "../lib/config";
-
-import type { ColorScheme } from "../hooks/useColorScheme";
+} from "@/lib/config";
 import { ErrorOverlay } from "./ErrorOverlay";
+import type { ColorScheme } from "@/hooks/useColorScheme";
 
 export type FactAction = {
   type: "save";
@@ -33,7 +34,7 @@ type ErrorState = {
 };
 
 const isBrowser = typeof window !== "undefined";
-const isDev = import.meta.env.DEV;
+const isDev = process.env.NODE_ENV !== "production";
 
 const createInitialErrors = (): ErrorState => ({
   script: null,
@@ -137,7 +138,7 @@ export function ChatKitPanel({
   useEffect(() => {
     if (!isWorkflowConfigured && isMountedRef.current) {
       setErrorState({
-        session: "Set VITE_CHATKIT_WORKFLOW_ID in your .env file.",
+        session: "Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your .env.local file.",
         retryable: false,
       });
       setIsInitializingSession(false);
@@ -167,8 +168,8 @@ export function ChatKitPanel({
       }
 
       if (!isWorkflowConfigured) {
-      const detail =
-  "Set VITE_CHATKIT_WORKFLOW_ID in your .env file.";
+        const detail =
+          "Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your .env.local file.";
         if (isMountedRef.current) {
           setErrorState({ session: detail, retryable: false });
           setIsInitializingSession(false);
@@ -280,7 +281,7 @@ export function ChatKitPanel({
     },
 
     // ===========================
-    // 🟢 TOOL: handofftoslack
+    // 🟢 TOOL: handoff_to_slack
     // ===========================
     onClientTool: async (invocation: {
       name: string;
@@ -314,9 +315,9 @@ export function ChatKitPanel({
       }
 
       // ===========================
-      // 🟣 NEW: handofftoslack
+      // 🟣 NEW: handoff_to_slack
       // ===========================
-      if (invocation.name === "handofftoslack") {
+      if (invocation.name === "handoff_to_slack") {
         try {
           if (isDev) {
             console.log("🔥 TOOL INVOCATION:", invocation.params);

@@ -1,5 +1,5 @@
 import { WORKFLOW_ID } from "../../../lib/config";
-
+console.log("WORKFLOW_ID:", WORKFLOW_ID);
 export const runtime = "edge";
 
 interface CreateSessionRequestBody {

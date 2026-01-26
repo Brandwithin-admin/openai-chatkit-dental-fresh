@@ -133,6 +133,12 @@ export function ChatKitPanel({
   const isWorkflowConfigured = Boolean(
     WORKFLOW_ID && !WORKFLOW_ID.startsWith("wf_replace")
   );
+console.debug("[ChatKitPanel] render state", {
+  workflowId: WORKFLOW_ID,
+});
+console.debug("[ChatKitPanel] render state", {
+  workflowId: WORKFLOW_ID,
+});
 
   useEffect(() => {
     if (!isWorkflowConfigured && isMountedRef.current) {
@@ -165,6 +171,9 @@ export function ChatKitPanel({
           endpoint: CREATE_SESSION_ENDPOINT,
         });
       }
+console.debug("[ChatKitPanel] render state", {
+  workflowId: WORKFLOW_ID,
+});
 
       if (!isWorkflowConfigured) {
         const detail =

@@ -1,10 +1,6 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from "react";
+"use client";
+
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 export type ColorScheme = "light" | "dark";
 export type ColorSchemePreference = ColorScheme | "system";
@@ -21,7 +17,7 @@ function getMediaQuery(): MediaQueryList | null {
   try {
     return window.matchMedia(PREFERS_DARK_QUERY);
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== "production") {
       console.warn("[useColorScheme] matchMedia failed", error);
     }
     return null;
@@ -40,7 +36,7 @@ function getServerSnapshot(): ColorScheme {
 function subscribeSystem(listener: () => void): () => void {
   const media = getMediaQuery();
   if (!media) {
-    return () => {};
+    return () => { };
   }
 
   const handler: MediaQueryCallback = () => listener();
@@ -50,12 +46,13 @@ function subscribeSystem(listener: () => void): () => void {
     return () => media.removeEventListener("change", handler);
   }
 
+  // Fallback for older browsers or environments.
   if (typeof media.addListener === "function") {
     media.addListener(handler);
     return () => media.removeListener(handler);
   }
 
-  return () => {};
+  return () => { };
 }
 
 function readStoredPreference(): ColorSchemePreference | null {
@@ -69,7 +66,7 @@ function readStoredPreference(): ColorSchemePreference | null {
     }
     return raw === "system" ? "system" : null;
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== "production") {
       console.warn("[useColorScheme] Failed to read preference", error);
     }
     return null;
@@ -87,7 +84,7 @@ function persistPreference(preference: ColorSchemePreference): void {
       window.localStorage.setItem(STORAGE_KEY, preference);
     }
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== "production") {
       console.warn("[useColorScheme] Failed to persist preference", error);
     }
   }
@@ -112,11 +109,7 @@ type UseColorSchemeResult = {
 };
 
 function useSystemColorScheme(): ColorScheme {
-  return useSyncExternalStore(
-    subscribeSystem,
-    getSystemSnapshot,
-    getServerSnapshot
-  );
+  return useSyncExternalStore(subscribeSystem, getSystemSnapshot, getServerSnapshot);
 }
 
 export function useColorScheme(
@@ -124,13 +117,12 @@ export function useColorScheme(
 ): UseColorSchemeResult {
   const systemScheme = useSystemColorScheme();
 
-  const [preference, setPreferenceState] =
-    useState<ColorSchemePreference>(() => {
-      if (typeof window === "undefined") {
-        return initialPreference;
-      }
-      return readStoredPreference() ?? initialPreference;
-    });
+  const [preference, setPreferenceState] = useState<ColorSchemePreference>(() => {
+    if (typeof window === "undefined") {
+      return initialPreference;
+    }
+    return readStoredPreference() ?? initialPreference;
+  });
 
   const scheme = useMemo<ColorScheme>(
     () => (preference === "system" ? systemScheme : preference),

@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatKit, useChatKit } from "@openai/chatkit-react";
 import {
@@ -10,7 +8,7 @@ import {
   WORKFLOW_ID,
   getThemeConfig,
 } from "../lib/config";
-import { ErrorOverlay } from "./ErrorOverlay";
+import { ErrorOverlay } from "../ErrorOverlay";
 import type { ColorScheme } from "../hooks/useColorScheme";
 
 export type FactAction = {

@@ -315,9 +315,9 @@ export function ChatKitPanel({
       }
 
       // ===========================
-      // 🟣 NEW: handoff_to_slack
+      // 🟣 NEW: handofftoslack
       // ===========================
-      if (invocation.name === "handoff_to_slack") {
+      if (invocation.name === "handofftoslack") {
         try {
           if (isDev) {
             console.log("🔥 TOOL INVOCATION:", invocation.params);

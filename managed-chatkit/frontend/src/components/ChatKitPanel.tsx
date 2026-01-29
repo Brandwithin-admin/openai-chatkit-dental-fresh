@@ -143,7 +143,7 @@ console.debug("[ChatKitPanel] render state", {
   useEffect(() => {
     if (!isWorkflowConfigured && isMountedRef.current) {
       setErrorState({
-        session: "Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your .env.local file.",
+        session: "Set VITE_CHATKIT_WORKFLOW_ID in your .env.local file.",
         retryable: false,
       });
       setIsInitializingSession(false);
@@ -177,7 +177,7 @@ console.debug("[ChatKitPanel] render state", {
 
       if (!isWorkflowConfigured) {
         const detail =
-          "Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your .env.local file.";
+          "Set VITE_CHATKIT_WORKFLOW_ID in your .env.local file.";
         if (isMountedRef.current) {
           setErrorState({ session: detail, retryable: false });
           setIsInitializingSession(false);

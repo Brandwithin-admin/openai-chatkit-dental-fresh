@@ -15,7 +15,7 @@ export const workflowId = (() => {
 // Creates a function that fetches a ChatKit client secret from backend
 export function createClientSecretFetcher(
   workflow: string,
-  endpoint = "/api/create-session"
+  endpoint = "https://openai-chatkit-dental-fresh.onrender.com/api/create-session"
 ) {
   return async (currentSecret: string | null) => {
     if (currentSecret) return currentSecret;

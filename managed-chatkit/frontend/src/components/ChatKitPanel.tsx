@@ -36,13 +36,13 @@ export function ChatKitPanel() {
 
         {/* Chat */}
         <div className="flex-1">
-          <ChatKit
-            control={chatkit.control}
-            greeting={GREETING_MESSAGE}
-            placeholderInput={INPUT_PLACEHOLDER}
-            starterPrompts={STARTER_PROMPTS}
-            className="h-full w-full"
-          />
+        <ChatKit
+  control={chatkit.control}
+  greetingMessage={GREETING_MESSAGE}
+  placeholder={INPUT_PLACEHOLDER}
+  startScreenPrompts={STARTER_PROMPTS}
+  className="h-full w-full"
+/>
         </div>
 
         {/* Footer */}

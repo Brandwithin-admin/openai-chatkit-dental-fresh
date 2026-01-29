@@ -12,7 +12,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const workflowId =
     req.body?.workflow?.id ||
     req.body?.workflowId ||
-    process.env.NEXT_PUBLIC_CHATKIT_WORKFLOW_ID;
+    process.env.VITE_CHATKIT_WORKFLOW_ID;
 
   if (!openaiApiKey) {
     return res.status(500).json({

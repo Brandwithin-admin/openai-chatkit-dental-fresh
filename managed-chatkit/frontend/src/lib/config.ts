@@ -1,5 +1,5 @@
 // lib/config.ts
-
+ 
 export const APP_NAME = "Dental Fresh AI Assistant";
 
 // Greeting shown when the chat loads

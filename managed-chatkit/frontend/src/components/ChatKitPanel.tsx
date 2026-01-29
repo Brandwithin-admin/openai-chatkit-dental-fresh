@@ -5,6 +5,7 @@ import {
   GREETING_MESSAGE,
   INPUT_PLACEHOLDER,
   STARTER_PROMPTS,
+  APP_NAME,
 } from "../lib/config";
 
 export function ChatKitPanel() {
@@ -18,14 +19,35 @@ export function ChatKitPanel() {
   });
 
   return (
-    <div className="flex h-[90vh] w-full rounded-2xl bg-white shadow-sm transition-colors dark:bg-slate-900">
-      <ChatKit
-        control={chatkit.control}
-        greeting={GREETING_MESSAGE}
-        placeholderInput={INPUT_PLACEHOLDER}
-        starterPrompts={STARTER_PROMPTS}
-        className="h-full w-full"
-      />
+    <div className="flex h-screen w-full items-center justify-center bg-slate-100 p-4">
+      <div className="flex h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-colors">
+
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b px-4 py-3">
+          {/* Optional logo */}
+          {/* <img src="/logo.png" alt="Dental Fresh" className="h-8 w-8" /> */}
+
+          <h1 className="text-lg font-semibold text-slate-800">
+            {APP_NAME}
+          </h1>
+        </div>
+
+        {/* Chat */}
+        <div className="flex-1">
+          <ChatKit
+            control={chatkit.control}
+            greeting={GREETING_MESSAGE}
+            placeholderInput={INPUT_PLACEHOLDER}
+            starterPrompts={STARTER_PROMPTS}
+            className="h-full w-full"
+          />
+        </div>
+
+        {/* Footer */}
+        <div className="border-t px-4 py-2 text-center text-xs text-slate-500">
+          Powered by Dental Fresh AI
+        </div>
+      </div>
     </div>
   );
 }

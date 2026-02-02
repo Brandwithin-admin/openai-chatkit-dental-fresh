@@ -15,7 +15,7 @@ export function ChatKitPanel() {
   onClientTool: async (tool) => {
     console.log("Tool execution triggered:", tool.name);
     
-    if (tool.name === "handoff_to_slack") {
+    if (tool.name === "handoffToSlack") {
       // Access the parameters from the AI
       const args = tool.params; 
 

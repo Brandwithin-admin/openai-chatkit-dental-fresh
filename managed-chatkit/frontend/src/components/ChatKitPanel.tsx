@@ -1,12 +1,6 @@
 import { useMemo } from "react";
 import { ChatKit, useChatKit } from "@openai/chatkit-react";
 import { createClientSecretFetcher, workflowId } from "../lib/chatkitSession";
-import {
-  GREETING_MESSAGE,
-  INPUT_PLACEHOLDER,
-  STARTER_PROMPTS,
-  APP_NAME,
-} from "../lib/config";
 
 export function ChatKitPanel() {
   const getClientSecret = useMemo(
@@ -17,6 +11,42 @@ export function ChatKitPanel() {
   const chatkit = useChatKit({
     api: { getClientSecret },
   });
+
+  // Inline configuration (no config.ts)
+  const APP_NAME = "Dental Fresh AI Assistant";
+
+  const GREETING_MESSAGE =
+    "Hi! I’m your Dental Fresh AI Assistant. How can I help you today?";
+
+  const INPUT_PLACEHOLDER =
+    "Ask me about dentures, treatments, or booking an appointment...";
+
+  const STARTER_PROMPTS = [
+    {
+      label: "🦷 Denture Options",
+      prompt:
+        "Explain the different denture and tooth replacement options offered by Dental Fresh.",
+      icon: "circle-question",
+    },
+    {
+      label: "📍 Clinic Location & Hours",
+      prompt:
+        "Where is Dental Fresh located and what are your clinic opening hours?",
+      icon: "circle-question",
+    },
+    {
+      label: "💰 Treatment Prices",
+      prompt:
+        "What are the general price ranges for Dental Fresh treatments?",
+      icon: "circle-question",
+    },
+    {
+      label: "😁 Denture Care Tips",
+      prompt:
+        "Give simple daily care and maintenance tips for people wearing dentures.",
+      icon: "circle-question",
+    },
+  ];
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-100 p-4">

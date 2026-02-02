@@ -13,6 +13,9 @@ export function ChatKitPanel() {
     
     // 1. ADD THE HANDOFF LOGIC HERE
     onToolCall: async (toolCall) => {
+      // THIS WILL SHOW IN YOUR BROWSER CONSOLE (F12)
+  console.log("AI is trying to call a tool named:", toolCall.name);
+  console.log("With these arguments:", toolCall.arguments);
       // This must match the 'name' in your OpenAI Tool definition
       if (toolCall.name === "handoffToSlack") {
         const args = JSON.parse(toolCall.arguments);
@@ -24,7 +27,7 @@ export function ChatKitPanel() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(args),
           });
-
+console.log("Render Backend Response:", result);
           if (!response.ok) throw new Error("Backend failed");
 
           // This message is returned to the AI to confirm success
@@ -37,6 +40,8 @@ export function ChatKitPanel() {
           return { status: "error", content: "I encountered an error sending the notification." };
         }
       }
+      // If the name didn't match, tell the console why
+  console.warn("Tool name did not match 'handoff_to_slack'");
     },
 
     startScreen: {

@@ -12,16 +12,31 @@ export function ChatKitPanel() {
     api: { getClientSecret },
     // ADD THIS SECTION BELOW
     startScreen: {
-      greeting: "Welcome! How can I help you today?",
-      prompts: [
-        { label: "🚀 Features", prompt: "What are the main features?" },
-        { label: "🛠️ Support", prompt: "How do I contact support?" },
-        { label: "💳 Pricing", prompt: "Tell me about your plans." },
-      ],
+  greeting: "Welcome! How can I help you today?",
+  prompts: [
+    {
+      label: "Where should I start?",
+      prompt:
+        "Guide me on where to start with Dental Fresh based on my dental needs. Provide a simple pathway and link me to the most relevant services, patient information, and team pages from the Dental Fresh website.",
+      icon: "search",
     },
-    composer: {
-      placeholder: "Ask me anything...",
-    }
+    {
+      label: "What denture options are available?",
+      prompt:
+        "Explain the different denture and tooth replacement options available at Dental Fresh, including partial dentures, custom overdentures, and advanced implant dentures (All-on-4). Reference and link to the relevant pages on the Dental Fresh website.",
+      icon: "book",
+    },
+    {
+      label: "How do I care for my dentures?",
+      prompt:
+        "Share general care and maintenance information for people who already have dentures. Reference and link to the Denture Care Guide on the Dental Fresh website and explain what patients should expect in ongoing care.",
+      icon: "sparkle",
+    },
+  ],
+},
+composer: {
+  placeholder: "Ask me about dentures, treatments, or your dental care...",
+}
   });
 
   return (

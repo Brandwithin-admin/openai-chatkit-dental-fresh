@@ -8,43 +8,20 @@ export function ChatKitPanel() {
     []
   );
 
-  // Configure ChatKit options (official API)
   const chatkit = useChatKit({
     api: { getClientSecret },
-
+    // ADD THIS SECTION BELOW
     startScreen: {
-      greeting: "Hi! I’m your Dental Fresh AI Assistant. How can I help you today?",
+      greeting: "Welcome! How can I help you today?",
       prompts: [
-        {
-          label: "🦷 Denture Options",
-          prompt:
-            "Explain the different denture and tooth replacement options offered by Dental Fresh.",
-          icon: "search",
-        },
-        {
-          label: "📍 Clinic Location & Hours",
-          prompt:
-            "Where is Dental Fresh located and what are your clinic opening hours?",
-          icon: "search",
-        },
-        {
-          label: "💰 Treatment Prices",
-          prompt:
-            "What are the general price ranges for Dental Fresh treatments?",
-          icon: "book",
-        },
-        {
-          label: "😁 Denture Care Tips",
-          prompt:
-            "Give simple daily care and maintenance tips for people wearing dentures.",
-          icon: "sparkle",
-        },
+        { label: "🚀 Features", prompt: "What are the main features?" },
+        { label: "🛠️ Support", prompt: "How do I contact support?" },
+        { label: "💳 Pricing", prompt: "Tell me about your plans." },
       ],
     },
-
     composer: {
-      placeholder: "Ask me anything about dentures, treatments, or appointments...",
-    },
+      placeholder: "Ask me anything...",
+    }
   });
 
   return (

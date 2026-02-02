@@ -14,7 +14,7 @@ export function ChatKitPanel() {
     // 1. ADD THE HANDOFF LOGIC HERE
     onToolCall: async (toolCall) => {
       // This must match the 'name' in your OpenAI Tool definition
-      if (toolCall.name === "handoff_to_slack") {
+      if (toolCall.name === "handoffToSlack") {
         const args = JSON.parse(toolCall.arguments);
 
         try {

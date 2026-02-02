@@ -1,4 +1,5 @@
-"""FastAPI entrypoint for exchanging workflow ids for ChatKit client secrets and handling Slack handoffs."""
+
+"""FastAPI entrypoint for exchanging workflow ids for ChatKit client secrets."""
 
 from __future__ import annotations
 
@@ -8,16 +9,15 @@ import uuid
 from typing import Any, Mapping
 
 import httpx
-from fastapi import FastAPI, Request, Body
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 DEFAULT_CHATKIT_BASE = "https://api.openai.com"
 SESSION_COOKIE_NAME = "chatkit_session_id"
 SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30  # 30 days
 
-app = FastAPI(title="Managed ChatKit Session & Handoff API")
+app = FastAPI(title="Managed ChatKit Session API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,47 +27,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- NEW HANDOFF MODELS & ROUTE ---
-
-class HandoffData(BaseModel):
-    type: str
-    name: str
-    email: str
-    phone: str = "N/A"
-    message: str = "No message provided"
-    transcript: str
-
-@app.post("/api/handoff")
-async def handle_handoff(data: HandoffData):
-    slack_url = os.environ.get("SLACK_WEBHOOK_URL")
-    if not slack_url:
-        return {"status": "error", "message": "Slack Webhook not configured on Render"}
-
-    payload = {
-        "text": (
-            f"🦷 *Dental Fresh Handoff Request*\n"
-            f"*Type:* {data.type}\n"
-            f"*Patient:* {data.name}\n"
-            f"*Email:* {data.email}\n"
-            f"*Phone:* {data.phone}\n"
-            f"*Context:* {data.message}\n"
-            f"--- \n*Chat Summary:* {data.transcript}"
-        )
-    }
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(slack_url, json=payload)
-        
-    if response.status_code != 200:
-        return {"status": "error", "message": "Failed to send to Slack"}
-
-    return {"status": "success"}
-
-# --- EXISTING SESSION LOGIC ---
 
 @app.get("/health")
 async def health() -> Mapping[str, str]:
     return {"status": "ok"}
+
 
 @app.post("/api/create-session")
 async def create_session(request: Request) -> JSONResponse:
@@ -127,6 +91,7 @@ async def create_session(request: Request) -> JSONResponse:
         cookie_value,
     )
 
+
 def respond(
     payload: Mapping[str, Any], status_code: int, cookie_value: str | None = None
 ) -> JSONResponse:
@@ -143,9 +108,11 @@ def respond(
         )
     return response
 
+
 def is_prod() -> bool:
     env = (os.getenv("ENVIRONMENT") or os.getenv("NODE_ENV") or "").lower()
     return env == "production"
+
 
 async def read_json_body(request: Request) -> Mapping[str, Any]:
     raw = await request.body()
@@ -156,6 +123,7 @@ async def read_json_body(request: Request) -> Mapping[str, Any]:
     except json.JSONDecodeError:
         return {}
     return parsed if isinstance(parsed, Mapping) else {}
+
 
 def resolve_workflow_id(body: Mapping[str, Any]) -> str | None:
     workflow = body.get("workflow", {})
@@ -172,6 +140,7 @@ def resolve_workflow_id(body: Mapping[str, Any]) -> str | None:
         return workflow_id.strip()
     return None
 
+
 def resolve_user(cookies: Mapping[str, str]) -> tuple[str, str | None]:
     existing = cookies.get(SESSION_COOKIE_NAME)
     if existing:
@@ -179,12 +148,14 @@ def resolve_user(cookies: Mapping[str, str]) -> tuple[str, str | None]:
     user_id = str(uuid.uuid4())
     return user_id, user_id
 
+
 def chatkit_api_base() -> str:
     return (
         os.getenv("CHATKIT_API_BASE")
         or os.getenv("VITE_CHATKIT_API_BASE")
         or DEFAULT_CHATKIT_BASE
     )
+
 
 def parse_json(response: httpx.Response) -> Mapping[str, Any]:
     try:

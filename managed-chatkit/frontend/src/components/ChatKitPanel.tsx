@@ -11,36 +11,40 @@ export function ChatKitPanel() {
   const chatkit = useChatKit({
     api: { getClientSecret },
 
-      // RENAME THIS TO onClientTool
   onClientTool: async (tool) => {
-    console.log("Tool execution triggered:", tool.name);
-    
-    if (tool.name === "handoffToSlack") {
-      // Access the parameters from the AI
-      const args = tool.params; 
+  // 1. Match the name exactly as seen in your console log
+  if (tool.name === "handoffToSlack") {
+    // Check if data is in tool.params or tool.arguments
+    const args = tool.params || (tool.arguments ? JSON.parse(tool.arguments) : {});
+    console.log("Sending data to Render:", args);
 
-      try {
-        const response = await fetch("https://openai-chatkit-dental-fresh.onrender.com", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(args),
-        });
+    try {
+      // 2. FIX: Add /api/handoff to the end of the URL
+      const response = await fetch("https://openai-chatkit-dental-fresh.onrender.com/api/handoff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(args),
+      });
 
-        if (!response.ok) throw new Error("Render backend failed");
-
-        return {
-          status: "success",
-          content: "I've successfully notified the Dental Fresh team!"
-        };
-      } catch (error) {
-        console.error("Handoff Error:", error);
-        return { 
-          status: "error", 
-          content: "I couldn't reach the notification service, but I've noted your request." 
-        };
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Render responded with ${response.status}: ${errorText}`);
       }
+
+      // 3. Return stringified JSON for OpenAI
+      return JSON.stringify({
+        status: "success",
+        content: "I've successfully notified the Dental Fresh team. They will contact you shortly!"
+      });
+    } catch (error) {
+      console.error("Handoff Error:", error);
+      return JSON.stringify({ 
+        status: "error", 
+        content: "I couldn't reach the notification service, but I've noted your request." 
+      });
     }
-  },
+  }
+},
     startScreen: {
       greeting: "Welcome! How can I help you today?",
       prompts: [

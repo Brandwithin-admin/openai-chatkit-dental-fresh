@@ -6,7 +6,7 @@ import {
   INPUT_PLACEHOLDER,
   STARTER_PROMPTS,
   APP_NAME,
-} from "./lib/config";
+} from "../lib/config";
 
 export function ChatKitPanel() {
   const getClientSecret = useMemo(

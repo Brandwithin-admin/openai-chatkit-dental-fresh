@@ -19,7 +19,7 @@ export function ChatKitPanel() {
 
         try {
           // Replace with your actual Render URL (e.g., https://api-service.onrender.com)
-          const response = await fetch("https://your-render-backend-url.com", {
+          const response = await fetch("https://openai-chatkit-dental-fresh.onrender.com", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(args),

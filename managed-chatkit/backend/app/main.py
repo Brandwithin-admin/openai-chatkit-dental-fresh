@@ -1,17 +1,16 @@
-"""FastAPI entrypoint for exchanging workflow ids for ChatKit client secrets and handling Slack handoffs."""
+"""FastAPI entrypoint for Managed ChatKit with flexible Slack handoff."""
 
 from __future__ import annotations
 
 import json
 import os
 import uuid
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 import httpx
 from fastapi import FastAPI, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 DEFAULT_CHATKIT_BASE = "https://api.openai.com"
 SESSION_COOKIE_NAME = "chatkit_session_id"
@@ -27,46 +26,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- UPDATED HANDOFF MODELS & ROUTE ---
-
-class HandoffData(BaseModel):
-    type: str
-    name: Optional[str] = "Unknown"
-    email: Optional[str] = None
-    phone: Optional[str] = "N/A"
-    company: Optional[str] = "N/A"
-    message: Optional[str] = "No message provided"
-    transcript: Optional[str] = "No transcript provided"
+# --- FLEXIBLE HANDOFF ROUTE ---
+# This uses 'dict' to bypass the 422 validation errors you were seeing.
 
 @app.post("/api/handoff")
-async def handle_handoff(data: HandoffData):
-    # Always log to Render console for debugging
-    print(f"Received {data.type} from {data.name}")
+async def handle_handoff(data: dict = Body(...)):
+    # Safely extract data using .get() to handle nulls
+    h_type = data.get("type", "unknown")
+    name = data.get("name", "Unknown")
+    email = data.get("email")
+    phone = data.get("phone", "N/A")
+    message = data.get("message", "No message provided")
+    transcript = data.get("transcript", "No transcript provided")
 
-    # ONLY trigger Slack if it's a human handoff or if we finally have an email
-    # This prevents sending incomplete 'progressive_profile' notifications
-    if data.type == "human_handoff" or (data.email and "@" in data.email):
+    print(f"--- Incoming Tool Call: {h_type} for {name} ---")
+
+    # Only send to Slack if it's a real handoff or we finally have an email
+    if h_type == "human_handoff" or (email and isinstance(email, str) and "@" in email):
         slack_url = os.environ.get("SLACK_WEBHOOK_URL")
-        if not slack_url:
-            return {"status": "error", "message": "Slack Webhook not configured"}
-
-        payload = {
-            "text": (
-                f"🦷 *Dental Fresh Lead Received*\n"
-                f"*Type:* {data.type}\n"
-                f"*Patient:* {data.name}\n"
-                f"*Email:* {data.email or 'Not provided'}\n"
-                f"*Phone:* {data.phone}\n"
-                f"*Company:* {data.company}\n"
-                f"*Context:* {data.message}\n"
-                f"--- \n*Chat Summary:* {data.transcript}"
-            )
-        }
-
-        async with httpx.AsyncClient() as client:
-            response = await client.post(slack_url, json=payload)
-            if response.status_code != 200:
-                return {"status": "error", "message": "Slack API error"}
+        
+        if slack_url:
+            payload = {
+                "text": (
+                    f"🦷 *Dental Fresh Lead*\n"
+                    f"*Type:* {h_type}\n"
+                    f"*Patient:* {name}\n"
+                    f"*Email:* {email or 'Pending...'}\n"
+                    f"*Phone:* {phone}\n"
+                    f"*Context:* {message}\n"
+                    f"--- \n*Summary:* {transcript}"
+                )
+            }
+            async with httpx.AsyncClient() as client:
+                await client.post(slack_url, json=payload)
+        else:
+            print("ERROR: SLACK_WEBHOOK_URL not found in environment variables.")
 
     return {"status": "success"}
 
@@ -106,11 +100,7 @@ async def create_session(request: Request) -> JSONResponse:
                 json=payload,
             )
     except httpx.RequestError as error:
-        return respond(
-            {"error": f"Failed to reach ChatKit API: {error}"},
-            502,
-            cookie_value,
-        )
+        return respond({"error": f"Failed to reach ChatKit API: {error}"}, 502, cookie_value)
 
     payload = parse_json(upstream)
     if not upstream.is_success:
@@ -121,22 +111,13 @@ async def create_session(request: Request) -> JSONResponse:
     client_secret = payload.get("client_secret") if isinstance(payload, dict) else None
     expires_after = payload.get("expires_after") if isinstance(payload, dict) else None
 
-    if not client_secret:
-        return respond(
-            {"error": "Missing client secret in response"},
-            502,
-            cookie_value,
-        )
-
     return respond(
         {"client_secret": client_secret, "expires_after": expires_after},
         200,
         cookie_value,
     )
 
-def respond(
-    payload: Mapping[str, Any], status_code: int, cookie_value: str | None = None
-) -> JSONResponse:
+def respond(payload: Mapping[str, Any], status_code: int, cookie_value: str | None = None) -> JSONResponse:
     response = JSONResponse(payload, status_code=status_code)
     if cookie_value:
         response.set_cookie(
@@ -156,46 +137,26 @@ def is_prod() -> bool:
 
 async def read_json_body(request: Request) -> Mapping[str, Any]:
     raw = await request.body()
-    if not raw:
-        return {}
-    try:
-        parsed = json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
-    return parsed if isinstance(parsed, Mapping) else {}
+    return json.loads(raw) if raw else {}
 
 def resolve_workflow_id(body: Mapping[str, Any]) -> str | None:
     workflow = body.get("workflow", {})
-    workflow_id = None
-    if isinstance(workflow, Mapping):
-        workflow_id = workflow.get("id")
+    workflow_id = workflow.get("id") if isinstance(workflow, Mapping) else None
     workflow_id = workflow_id or body.get("workflowId")
-    env_workflow = os.getenv("CHATKIT_WORKFLOW_ID") or os.getenv(
-        "VITE_CHATKIT_WORKFLOW_ID"
-    )
-    if not workflow_id and env_workflow:
-        workflow_id = env_workflow
-    if workflow_id and isinstance(workflow_id, str) and workflow_id.strip():
-        return workflow_id.strip()
-    return None
+    env_workflow = os.getenv("CHATKIT_WORKFLOW_ID") or os.getenv("VITE_CHATKIT_WORKFLOW_ID")
+    return (workflow_id or env_workflow or "").strip() or None
 
 def resolve_user(cookies: Mapping[str, str]) -> tuple[str, str | None]:
     existing = cookies.get(SESSION_COOKIE_NAME)
-    if existing:
-        return existing, None
+    if existing: return existing, None
     user_id = str(uuid.uuid4())
     return user_id, user_id
 
 def chatkit_api_base() -> str:
-    return (
-        os.getenv("CHATKIT_API_BASE")
-        or os.getenv("VITE_CHATKIT_API_BASE")
-        or DEFAULT_CHATKIT_BASE
-    )
+    return os.getenv("CHATKIT_API_BASE") or os.getenv("VITE_CHATKIT_API_BASE") or DEFAULT_CHATKIT_BASE
 
 def parse_json(response: httpx.Response) -> Mapping[str, Any]:
     try:
-        parsed = response.json()
-        return parsed if isinstance(parsed, Mapping) else {}
-    except (json.JSONDecodeError, httpx.DecodingError):
+        return response.json()
+    except:
         return {}

@@ -11,40 +11,47 @@ export function ChatKitPanel() {
   const chatkit = useChatKit({
     api: { getClientSecret },
 
-  onClientTool: async (tool) => {
-  // 1. Match the name exactly as seen in your console log
-  if (tool.name === "handoffToSlack") {
-    // Check if data is in tool.params or tool.arguments
-    const args = tool.params || (tool.arguments ? JSON.parse(tool.arguments) : {});
-    console.log("Sending data to Render:", args);
+ onClientTool: async (tool) => {
+      // 1. Match the name exactly from your console logs
+      if (tool.name === "handoffToSlack") {
+        const args = tool.params || (tool.arguments ? JSON.parse(tool.arguments) : {});
+        console.log("Sending data to Render:", args);
 
-    try {
-      // 2. FIX: Add /api/handoff to the end of the URL
-      const response = await fetch("https://openai-chatkit-dental-fresh.onrender.com/api/handoff", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(args),
-      });
+        // Check if this is a final handoff or just a background profile update
+        const isProgressive = args.type === "progressive_profile";
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Render responded with ${response.status}: ${errorText}`);
+        try {
+          const response = await fetch("https://openai-chatkit-dental-fresh.onrender.com/api/handoff", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(args),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Render responded with ${response.status}: ${errorText}`);
+          }
+
+          // 2. Logic: Change the AI's "internal" confirmation message
+          // If progressive, we tell the AI to keep going. If handoff, we tell it to notify the user.
+          const statusMessage = isProgressive 
+            ? `SUCCESS: Captured ${args.name || 'data'}. Continue conversation to collect Email and Phone.` 
+            : "SUCCESS: The Dental Fresh team has been notified via Slack. Inform the user they will be contacted shortly.";
+
+          return JSON.stringify({
+            status: "success",
+            content: statusMessage
+          });
+
+        } catch (error) {
+          console.error("Handoff Error:", error);
+          return JSON.stringify({ 
+            status: "error", 
+            content: "I couldn't reach the notification service, but I've noted your request locally." 
+          });
+        }
       }
-
-      // 3. Return stringified JSON for OpenAI
-      return JSON.stringify({
-        status: "success",
-        content: "I've successfully notified the Dental Fresh team. They will contact you shortly!"
-      });
-    } catch (error) {
-      console.error("Handoff Error:", error);
-      return JSON.stringify({ 
-        status: "error", 
-        content: "I couldn't reach the notification service, but I've noted your request." 
-      });
-    }
-  }
-},
+    },
     startScreen: {
       greeting: "Welcome! How can I help you today?",
       prompts: [

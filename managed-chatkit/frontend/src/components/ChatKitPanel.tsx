@@ -10,39 +10,36 @@ export function ChatKitPanel() {
 
   const chatkit = useChatKit({
     api: { getClientSecret },
-        // 1. ADD THE HANDOFF LOGIC HERE
+    
+    // 1. ADD THE HANDOFF LOGIC HERE
     onToolCall: async (toolCall) => {
+      // This must match the 'name' in your OpenAI Tool definition
       if (toolCall.name === "handoff_to_slack") {
         const args = JSON.parse(toolCall.arguments);
 
         try {
-          // 2. SEND TO SLACK (Replace with your actual Slack Webhook or Backend API)
-          const response = await fetch("https://hooks.slack.com", {
+          // Replace with your actual Render URL (e.g., https://api-service.onrender.com)
+          const response = await fetch("https://your-render-backend-url.com", {
             method: "POST",
-            body: JSON.stringify({
-              text: `🦷 *New Dental Fresh Lead (${args.type})*\n` +
-                    `*Name:* ${args.name}\n` +
-                    `*Email:* ${args.email}\n` +
-                    `*Phone:* ${args.phone || 'N/A'}\n` +
-                    `*Message:* ${args.message || 'None'}\n` +
-                    `*Summary:* ${args.transcript}`
-            }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(args),
           });
 
-          if (!response.ok) throw new Error("Slack failed");
+          if (!response.ok) throw new Error("Backend failed");
 
-          // 3. RETURN SUCCESS TO THE AI
+          // This message is returned to the AI to confirm success
           return {
             status: "success",
-            content: "Information sent successfully to the Dental Fresh team. Someone will contact you soon!"
+            content: "The Dental Fresh team has been notified and will be in touch shortly!"
           };
         } catch (error) {
-          return { status: "error", content: "Failed to send notification." };
+          console.error("Handoff Error:", error);
+          return { status: "error", content: "I encountered an error sending the notification." };
         }
       }
     },
-    // ADD THIS SECTION BELOW
-        startScreen: {
+
+    startScreen: {
       greeting: "Welcome! How can I help you today?",
       prompts: [
         { label: "Where should I start?", prompt: "Guide me on where to start with Dental Fresh based on my dental needs. Provide a simple pathway and link me to the most relevant services, patient information, and team pages from the Dental Fresh website." },
@@ -54,11 +51,10 @@ export function ChatKitPanel() {
       placeholder: "Ask me about dentures, treatments, or your dental care..",
     }
   });
- 
+
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-100 p-4">
       <div className="flex h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-lg">
-
         {/* Header */}
         <div className="flex items-center gap-3 border-b px-4 py-3">
           <img

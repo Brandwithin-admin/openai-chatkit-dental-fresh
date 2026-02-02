@@ -12,8 +12,8 @@ export function ChatKitPanel() {
     api: { getClientSecret },
     // ADD THIS SECTION BELOW
     startScreen: {
-  greeting: "Welcome! How can I help you today?",
-  prompts: [
+      greeting: "Welcome! How can I help you today?",
+      prompts: [
     {
       label: "Where should I start?",
       prompt:
@@ -33,10 +33,10 @@ export function ChatKitPanel() {
       icon: "sparkle",
     },
   ],
-},
-composer: {
-  placeholder: "Ask me about dentures, treatments, or your dental care...",
-}
+    },
+    composer: {
+      placeholder: "Ask me about dentures, treatments, or your dental care...",
+    }
   });
 
   return (

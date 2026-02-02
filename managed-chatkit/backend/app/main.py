@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 
 import httpx
 from fastapi import FastAPI, Request, Body
@@ -27,39 +27,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- NEW HANDOFF MODELS & ROUTE ---
+# --- UPDATED HANDOFF MODELS & ROUTE ---
 
 class HandoffData(BaseModel):
     type: str
-    name: str
-    email: str
-    phone: str = "N/A"
-    message: str = "No message provided"
-    transcript: str
+    name: Optional[str] = "Unknown"
+    email: Optional[str] = None
+    phone: Optional[str] = "N/A"
+    company: Optional[str] = "N/A"
+    message: Optional[str] = "No message provided"
+    transcript: Optional[str] = "No transcript provided"
 
 @app.post("/api/handoff")
 async def handle_handoff(data: HandoffData):
-    slack_url = os.environ.get("SLACK_WEBHOOK_URL")
-    if not slack_url:
-        return {"status": "error", "message": "Slack Webhook not configured on Render"}
+    # Always log to Render console for debugging
+    print(f"Received {data.type} from {data.name}")
 
-    payload = {
-        "text": (
-            f"🦷 *Dental Fresh Handoff Request*\n"
-            f"*Type:* {data.type}\n"
-            f"*Patient:* {data.name}\n"
-            f"*Email:* {data.email}\n"
-            f"*Phone:* {data.phone}\n"
-            f"*Context:* {data.message}\n"
-            f"--- \n*Chat Summary:* {data.transcript}"
-        )
-    }
+    # ONLY trigger Slack if it's a human handoff or if we finally have an email
+    # This prevents sending incomplete 'progressive_profile' notifications
+    if data.type == "human_handoff" or (data.email and "@" in data.email):
+        slack_url = os.environ.get("SLACK_WEBHOOK_URL")
+        if not slack_url:
+            return {"status": "error", "message": "Slack Webhook not configured"}
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(slack_url, json=payload)
-        
-    if response.status_code != 200:
-        return {"status": "error", "message": "Failed to send to Slack"}
+        payload = {
+            "text": (
+                f"🦷 *Dental Fresh Lead Received*\n"
+                f"*Type:* {data.type}\n"
+                f"*Patient:* {data.name}\n"
+                f"*Email:* {data.email or 'Not provided'}\n"
+                f"*Phone:* {data.phone}\n"
+                f"*Company:* {data.company}\n"
+                f"*Context:* {data.message}\n"
+                f"--- \n*Chat Summary:* {data.transcript}"
+            )
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(slack_url, json=payload)
+            if response.status_code != 200:
+                return {"status": "error", "message": "Slack API error"}
 
     return {"status": "success"}
 

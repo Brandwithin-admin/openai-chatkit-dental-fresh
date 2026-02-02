@@ -10,6 +10,37 @@ export function ChatKitPanel() {
 
   const chatkit = useChatKit({
     api: { getClientSecret },
+        // 1. ADD THE HANDOFF LOGIC HERE
+    onToolCall: async (toolCall) => {
+      if (toolCall.name === "handoff_to_slack") {
+        const args = JSON.parse(toolCall.arguments);
+
+        try {
+          // 2. SEND TO SLACK (Replace with your actual Slack Webhook or Backend API)
+          const response = await fetch("https://hooks.slack.com", {
+            method: "POST",
+            body: JSON.stringify({
+              text: `🦷 *New Dental Fresh Lead (${args.type})*\n` +
+                    `*Name:* ${args.name}\n` +
+                    `*Email:* ${args.email}\n` +
+                    `*Phone:* ${args.phone || 'N/A'}\n` +
+                    `*Message:* ${args.message || 'None'}\n` +
+                    `*Summary:* ${args.transcript}`
+            }),
+          });
+
+          if (!response.ok) throw new Error("Slack failed");
+
+          // 3. RETURN SUCCESS TO THE AI
+          return {
+            status: "success",
+            content: "Information sent successfully to the Dental Fresh team. Someone will contact you soon!"
+          };
+        } catch (error) {
+          return { status: "error", content: "Failed to send notification." };
+        }
+      }
+    },
     // ADD THIS SECTION BELOW
         startScreen: {
       greeting: "Welcome! How can I help you today?",

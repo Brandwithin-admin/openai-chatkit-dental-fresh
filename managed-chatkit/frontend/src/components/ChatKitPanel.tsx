@@ -10,12 +10,14 @@ export function ChatKitPanel() {
 
   const chatkit = useChatKit({
     api: { getClientSecret },
-      // RENAME THIS FROM onToolCall TO onClientToolCall
-  onClientToolCall: async (toolCall) => {
-    console.log("Tool triggered!", toolCall.name);
+
+      // RENAME THIS TO onClientTool
+  onClientTool: async (tool) => {
+    console.log("Tool execution triggered:", tool.name);
     
-    if (toolCall.name === "handoffToSlack") {
-      const args = JSON.parse(toolCall.arguments);
+    if (tool.name === "handoff_to_slack") {
+      // Access the parameters from the AI
+      const args = tool.params; 
 
       try {
         const response = await fetch("https://openai-chatkit-dental-fresh.onrender.com", {
@@ -24,22 +26,21 @@ export function ChatKitPanel() {
           body: JSON.stringify(args),
         });
 
-console.log("Render Backend Response:", result);
         if (!response.ok) throw new Error("Render backend failed");
 
         return {
           status: "success",
-          content: "The Dental Fresh team has been notified!"
+          content: "I've successfully notified the Dental Fresh team!"
         };
       } catch (error) {
-        console.error("Handoff error:", error);
-        return { status: "error", content: "Notification failed." };
+        console.error("Handoff Error:", error);
+        return { 
+          status: "error", 
+          content: "I couldn't reach the notification service, but I've noted your request." 
+        };
       }
-    }    
-      // If the name didn't match, tell the console why
-  console.warn("Tool name did not match 'handoff_to_slack'");
+    }
   },
-
     startScreen: {
       greeting: "Welcome! How can I help you today?",
       prompts: [

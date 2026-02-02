@@ -10,39 +10,35 @@ export function ChatKitPanel() {
 
   const chatkit = useChatKit({
     api: { getClientSecret },
+      // RENAME THIS FROM onToolCall TO onClientToolCall
+  onClientToolCall: async (toolCall) => {
+    console.log("Tool triggered!", toolCall.name);
     
-    // 1. ADD THE HANDOFF LOGIC HERE
-    onToolCall: async (toolCall) => {
-      // THIS WILL SHOW IN YOUR BROWSER CONSOLE (F12)
-  console.log("AI is trying to call a tool named:", toolCall.name);
-  console.log("With these arguments:", toolCall.arguments);
-      // This must match the 'name' in your OpenAI Tool definition
-      if (toolCall.name === "handoffToSlack") {
-        const args = JSON.parse(toolCall.arguments);
+    if (toolCall.name === "handoffToSlack") {
+      const args = JSON.parse(toolCall.arguments);
 
-        try {
-          // Replace with your actual Render URL (e.g., https://api-service.onrender.com)
-          const response = await fetch("https://openai-chatkit-dental-fresh.onrender.com", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(args),
-          });
+      try {
+        const response = await fetch("https://openai-chatkit-dental-fresh.onrender.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(args),
+        });
+
 console.log("Render Backend Response:", result);
-          if (!response.ok) throw new Error("Backend failed");
+        if (!response.ok) throw new Error("Render backend failed");
 
-          // This message is returned to the AI to confirm success
-          return {
-            status: "success",
-            content: "The Dental Fresh team has been notified and will be in touch shortly!"
-          };
-        } catch (error) {
-          console.error("Handoff Error:", error);
-          return { status: "error", content: "I encountered an error sending the notification." };
-        }
+        return {
+          status: "success",
+          content: "The Dental Fresh team has been notified!"
+        };
+      } catch (error) {
+        console.error("Handoff error:", error);
+        return { status: "error", content: "Notification failed." };
       }
+    }    
       // If the name didn't match, tell the console why
   console.warn("Tool name did not match 'handoff_to_slack'");
-    },
+  },
 
     startScreen: {
       greeting: "Welcome! How can I help you today?",
